@@ -78,9 +78,11 @@ verify_node() {
 }
 
 print_banner() {
-	echo -e "${GREEN}"
-	echo -e "K3s server installation"
-	echo -e "${RESET}"
+    echo -e "${GREEN}"
+    echo "╔═══════════════════════════════════════╗"
+    echo "║         K3s Server Installation       ║"
+    echo "╚═══════════════════════════════════════╝"
+    echo -e "${NC}"
 }
 
 setup_kubeconfig() {
@@ -117,7 +119,9 @@ print_status "Token permission updated."
 setup_kubeconfig
 
 echo -e "${GREEN}"
-echo -e "K3s Server Setup Complete !"
+    echo "╔═══════════════════════════════════════╗"
+    echo "║         K3s Server Complete	          ║"
+    echo "╚═══════════════════════════════════════╝"
 echo -e "${RESET}"
 
 print_status "Current node status: "
