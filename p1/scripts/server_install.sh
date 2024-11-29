@@ -1,129 +1,128 @@
 #!/bin/bash
 
-set -e
+set -e  # Exit on any error
 
+# ===========================
+# Constants and Configurations
+# ===========================
+
+# Color codes
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-RESET='\033[0m'
+NC='\033[0m'
 
+# Logging
+LOG_FILE="/vagrant/logs/server-install.log"
+LOG_DIR=$(dirname "$LOG_FILE")
+mkdir -p "$LOG_DIR"  # Ensure the log directory exists
 
-MAX_ATTEMPS=10
+# Retry configuration
+MAX_ATTEMPTS=12
 RETRY_INTERVAL=5
 
-log() {
-	local timestamp="+%Y-%M-%D %H:%M:%S"
+# ===========================
+# Utility Functions
+# ===========================
 
-	case "$1" in
-		INFO)
-		       	echo -e "$timestamp ${GREEN}  $2 ${RESET}" | tee -a /vagrant/logs/server_install.log
-			;;
-		WARN)
-			echo -e "$timestamp ${YELLOW} $2 ${RESET}" | tee -a /vagrant/logs/server_install.log
-			;;
-		ERROR)
-			echo -e "$timestamp ${RED} $2 ${RESET}" | tee -a /vagrant/logs/server_install.log
-			;;
-		*)
-			echo -e "$timestamp ${BLUE} $2 ${RESET}" | tee -a /vagrant/logs/server_install.log
-			;;
-	esac	
+log() {
+    local level="$1"
+    local message="$2"
+    local timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+    local color
+
+    case "$level" in
+        INFO) color="$GREEN";;
+        WARN) color="$YELLOW";;
+        ERROR) color="$RED";;
+        *) color="$BLUE";;
+    esac
+
+    echo -e "$timestamp ${color}[$level]${NC} $message" | tee -a "$LOG_FILE"
 }
 
 handle_error() {
-	log ERROR "$1"
-	exit 1
+    log ERROR "$1"
+    exit 1
 }
 
-print_status() {
-	log INFO "$1"
+run_with_retry() {
+    local command="$1"
+    local description="$2"
+    local attempt=1
+
+    log INFO "Starting: $description"
+    while ! eval "$command"; do
+        if [ "$attempt" -ge "$MAX_ATTEMPTS" ]; then
+            log ERROR "Failed: $description after $MAX_ATTEMPTS attempts"
+            return 1
+        fi
+        log WARN "Attempt $attempt/$MAX_ATTEMPTS failed. Retrying in $RETRY_INTERVAL seconds..."
+        sleep "$RETRY_INTERVAL"
+        ((attempt++))
+    done
+    log INFO "Success: $description"
+    return 0
 }
 
-print_warning() {
-	log "[WARNING]: $1"
+# ===========================
+# Core Functions
+# ===========================
+
+setup_kubeconfig() {
+    log INFO "Setting up kubeconfig permissions..."
+    sudo mkdir -p /home/vagrant/.kube
+    sudo cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config
+    sudo chown -R vagrant:vagrant /home/vagrant/.kube
+    sudo chmod 600 /home/vagrant/.kube/config
+    log INFO "Kubeconfig permissions updated"
+}
+
+install_k3s() {
+    log INFO "Installing K3s server..."
+    curl -sfL https://get.k3s.io | \
+    INSTALL_K3S_EXEC="--write-kubeconfig-mode 644" \
+    sh - || handle_error "Failed to install K3s"
 }
 
 wait_for_service() {
-	local service=$1
-	local attempt=1
-
-	print_status "Waiting for $service to start..."
-	while ! systemctl is-active --quiet $service; do
-		if [ $attempt -ge $MAX_ATTEMPTS ]; then
-			return 1
-		fi
-		print_warning "Attempt $attempt/$MAX_ATTEMPTS..."
-		sleep $RETRY_INTERVAL
-		((attempt++))
-	done
-	print_status "$service is ready."
-	return 0
+    local service_name="$1"
+    run_with_retry \
+        "systemctl is-active --quiet $service_name" \
+        "Waiting for $service_name to start"
 }
 
 verify_node() {
-	local attempt=1
-
-	print_status "Verifying node status..."
-	while ! kubectl get nodes | grep -q "Ready"; do
-		if [ $attempt -ge $MAX_ATTEMPS ]; then
-			return 1
-		fi
-		print_warning "Attempt $attemp/$MAX_ATTEMPS..."
-		sleep $RETRY_INTERVAL
-		((attemp++))
-	done
-	print_status "Node is ready."
-	return 0
+    run_with_retry \
+        "kubectl get nodes | grep -q 'Ready'" \
+        "Waiting for Kubernetes node to become Ready"
 }
 
-print_banner() {
-    echo -e "${GREEN}"
-    echo "╔═══════════════════════════════════════╗"
-    echo "║         K3s Server Installation       ║"
-    echo "╚═══════════════════════════════════════╝"
-    echo -e "${NC}"
-}
+# ===========================
+# Main Script
+# ===========================
 
-setup_kubeconfig() {
-	print_status "Setting up kubeconfig permissions..."
-	sudo mkdir -p /home/vagrant/.kube
-	sudo cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config
-	sudo chown -R vagrant:vagrant /home/vragrant/.kube
-	sudo chmod 600 /home/vagrant/.kube/config
-	print_status "Kubeconfig permissions updated."
-}
+trap 'handle_error "Unexpected error occurred. Exiting..."' ERR
 
-print_banner
+log INFO "Starting K3s server setup..."
+install_k3s
 
-print_status "Installing K3s server..."
-curl -sfL https://get.k3s.io | \
-       INSTALL_K3S_EXEC="--write-kubeconfig-mode 644" \
-       sh - || handle_error "Failed to install K3s"
-print_status "K3s installed successfully."
+wait_for_service k3s || handle_error "K3s service failed to start"
+log INFO "K3s service is running"
 
-wait_for_service k3s || \
-	handle_error "K3s service faile to start."
+log INFO "Checking kubectl installation..."
+command -v kubectl >/dev/null 2>&1 || handle_error "kubectl not installed"
+log INFO "kubectl is available"
 
-print_status "Checking kubectl installation..."
-command -v kubectl >/dev/null 2>&1 || \
-	handle_error "kubectl not installed"
-print_status "kubectl is available."
+verify_node || handle_error "Node failed to become ready"
+log INFO "Node is ready"
 
-verify_node || handle_error "Node failed to become ready."
-
-print_status "Configuring node token permission..."
+log INFO "Configuring node token permissions..."
 sudo chmod 644 /var/lib/rancher/k3s/server/node-token
-print_status "Token permission updated."
+log INFO "Token permissions updated"
 
 setup_kubeconfig
 
-echo -e "${GREEN}"
-    echo "╔═══════════════════════════════════════╗"
-    echo "║         K3s Server Complete	          ║"
-    echo "╚═══════════════════════════════════════╝"
-echo -e "${RESET}"
-
-print_status "Current node status: "
-kubectl get nodes
-	
+log INFO "K3s server setup complete! 🚀"
+kubectl get nodes | tee -a "$LOG_FILE"
