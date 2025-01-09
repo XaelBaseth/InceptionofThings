@@ -14,7 +14,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Logging
-LOG_FILE="/vagrant/logs/server-install.log"
+LOG_FILE="$HOME/vagrant/logs/server-install.log"
 LOG_DIR=$(dirname "$LOG_FILE")
 mkdir -p "$LOG_DIR"  # Ensure the log directory exists
 
@@ -40,6 +40,11 @@ log() {
     esac
 
     echo -e "$timestamp ${color}[$level]${NC} $message" | tee -a "$LOG_FILE"
+}
+
+install_service() {
+	sudo apt update && sudo apt upgrade -y > /dev/null 2>&1
+	sudo apt install curl -y
 }
 
 handle_error() {
@@ -105,6 +110,9 @@ verify_node() {
 
 trap 'handle_error "Unexpected error occurred. Exiting..."' ERR
 
+log INFO "Installing the necessary service"
+install_service
+
 log INFO "Starting K3s server setup..."
 install_k3s
 
@@ -123,6 +131,13 @@ sudo chmod 644 /var/lib/rancher/k3s/server/node-token
 log INFO "Token permissions updated"
 
 setup_kubeconfig
+
+# Print success message
+echo -e "${GREEN}"
+echo "╔═══════════════════════════════════════╗"
+echo "║         K3s Server Setup Complete     ║"
+echo "╚═══════════════════════════════════════╝"
+echo -e "${NC}"
 
 log INFO "K3s server setup complete! 🚀"
 kubectl get nodes | tee -a "$LOG_FILE"

@@ -14,7 +14,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Logging
-LOG_FILE="/vagrant/logs/agent-install.log"
+LOG_FILE="$HOME/vagrant/logs/agent-install.log"
 LOG_DIR=$(dirname "$LOG_FILE")
 mkdir -p "$LOG_DIR"  # Ensure the log directory exists
 
@@ -27,7 +27,7 @@ SERVER_IP="192.168.56.110"
 SSH_OPTS="-o ConnectTimeout=5 \
           -o StrictHostKeyChecking=no \
           -o UserKnownHostsFile=/dev/null \
-          -i /vagrant/.vagrant/machines/abdeel-oS/virtualbox/private_key"
+          -i /vagrant/.vagrant/machines/acharlotS/virtualbox/private_key"
 
 # ===========================
 # Utility Functions
@@ -47,6 +47,11 @@ log() {
     esac
 
     echo -e "$timestamp ${color}[$level]${NC} $message" | tee -a "$LOG_FILE"
+}
+
+install_service() {
+	sudo apt update && sudo apt upgrade -y > /dev/null 2>&1
+	sudo apt install curl -y
 }
 
 handle_error() {
@@ -111,6 +116,9 @@ wait_for_service() {
 # ===========================
 
 trap 'handle_error "Unexpected error occurred. Exiting..."' ERR
+
+log INFO "Installing the necessary service"
+install_service
 
 log INFO "Starting K3s agent setup..."
 log INFO "Waiting for server to be fully initialized..."

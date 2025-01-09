@@ -30,7 +30,7 @@ Initialize the Vagrantfile.
 
 Start the virtual machine.
 
-    vagrant ssh
+    vagrant ssh <VM NAME>
 
 Connect to the VM with ssh.
 
@@ -38,3 +38,24 @@ Connect to the VM with ssh.
 
 Terminate the virtual machine.
 
+## Destroy the vm
+
+Terminate the virtual machine without prompt.
+
+    vagrant destroy -f
+
+List the VM managed by Virtualbox.
+
+    vboxmanage list vms
+
+List the VM running and managed by Virtualbox.
+
+    vboxmanage list running vms
+
+Take the control of the VM <VM NAME> to power it off.
+
+    vboxmanage controlvm <VM NAME> poweroff
+
+Delete the VM <VM NAME>.
+
+    vboxmanage unregistervm <VM NAME> --delete
