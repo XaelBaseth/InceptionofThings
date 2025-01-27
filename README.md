@@ -50,6 +50,76 @@ Connect to the VM with ssh.
 
 Terminate the virtual machine.
 
+## K3s
+
+K3s is a lightweight version of Kubernetes that has the same role: _a container orchestration engine for automating deployment, scaling, and management of containerized applications_.
+
+It's a fully conformant production-ready Kubernetes distribution that has been packaged a single binary, wraps Kubernetes and other components in a single launcher. Additionally, K3s simplify Kubernetes operations by maintaning functionnality for
+
+- Managing the TLS certificates for Kubernetes components.
+- Manageing the connection between worker and server nodes.
+- Auto-deploying Kubernetes ressources from local manifests in realtime as they are changed.
+- Managing an embedded etcd cluster ( a strongly consistent, distributed key-value store that is used by Kubernetes to store metadata information about the cluster objects).
+
+The installation for this project is done via the provisionning script given to Vagrant.
+
+|             |             |
+| ----------- | ----------- |
+| __SERVER__ | __AGENT__  |
+| Manage the K8s API| Gather instructions from the server via the API |
+| Manage the control plane, inlcuding the scheduler and the ressources| Execute the workload (pods & containers) |
+| Manage the cluster's data | Share the data on their ressource |
+
+This architecture has two big advantages : Easily scalable, since the addition of workload is distinct from the control plane; Resistant : one server can manage several agents, in case of a stopped agent, the serveur can reassign the workload to others.
+
+### K3s commands
+
+To verify K3s is running correctly after its installation, we use the script to check the status of the node, and after accessing the vm via the ssh command, we can run:
+
+    systemctl status k3s
+
+For more details, you can run the following command on the server machine:
+
+    kubectl get nodes
+
+## Kubectl
+
+_kubectl_ is a command-line tool used to interact with Kubernetes cluster. It allows you to manage application running on Kubernetes, inspect cluster ressources, and perfom several administrative tasks.
+
+### Kubectl commands
+
+This command allows you to retrieve information about Kubernetes ressources.
+
+    kubectl get
+
+Is used to create resources from files or directly from command-line arguments.
+
+    kubectl create
+
+Similar to kubectl create, but it can also update existing resources.
+
+    kubectl apply
+
+Provides detailed information about a specific Kubernetes resource.
+
+    kubectl describe
+
+Fetches logs from a specific pod.
+
+    kubectl logs
+
+Executes a command inside a running container of a pod.
+
+    kubectl exec
+
+Deletes resources by name or from configuration files.
+
+    kubectl delete
+
+## The VM
+
+Since the subject has to be done on a VM, we use VirtualBox Manager in order to create it. The VM is created on a Debian bookworm with a ssh port defined in the settings of the VM to be able to connect easily. You can also add the AdditionnalDisk if you want, but it's not necessary.
+
 ## Destroy the vm
 
 Terminate the virtual machine without prompt.
@@ -64,20 +134,26 @@ List the VM running and managed by Virtualbox.
 
     vboxmanage list runningvms
 
-Take the control of the VM <VM NAME> to power it off.
+Take the control of the VM < VM NAME > to power it off.
 
     vboxmanage controlvm <VM NAME> poweroff
 
-Delete the VM <VM NAME>.
+Delete the VM < VM NAME >.
 
     vboxmanage unregistervm <VM NAME> --delete
-
-## The VM
-
-Since the subject has to be done on a VM, we use VirtualBox Manager in order to create it. The VM is created on a Debian bookworm with a ssh port defined in the settings of the VM to be able to connect easily. You can also add the AdditionnalDisk if you want, but it's not necessary.
 
 ## Sources
 
 [Vagrant official documentation](https://developer.hashicorp.com/vagrant)
 
 [How to install VirtualBox Manager](https://linuxiac.com/how-to-install-virtualbox-on-debian-12-bookworm/)
+
+[K3s official documentation](https://docs.k3s.io/)
+
+[Kubernetes official documentation](https://kubernetes.io/docs/concepts/overview/#why-you-need-kubernetes-and-what-can-it-do)
+
+[Stephane Robert sur Vagrant](https://blog.stephane-robert.info/docs/infra-as-code/provisionnement/vagrant/introduction/)
+
+[Vagrantfile provider](https://portal.cloud.hashicorp.com/vagrant/discover/debian/bullseye64)
+
+[Stephane Robert sur Kubectl](https://blog.stephane-robert.info/docs/conteneurs/orchestrateurs/outils/kubectl/)

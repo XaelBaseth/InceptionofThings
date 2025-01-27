@@ -14,9 +14,8 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Logging
+mkdir -p $HOME/vagrant/logs
 LOG_FILE="$HOME/vagrant/logs/server-install.log"
-LOG_DIR=$(dirname "$LOG_FILE")
-mkdir -p "$LOG_DIR"  # Ensure the log directory exists
 
 # Retry configuration
 MAX_ATTEMPTS=12
