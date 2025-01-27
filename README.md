@@ -67,7 +67,7 @@ The installation for this project is done via the provisionning script given to 
 | ----------- | ----------- |
 | __SERVER__ | __AGENT__  |
 | Manage the K8s API| Gather instructions from the server via the API |
-| Manage the control plane, inlcuding the scheduler and the ressources| Execute the workload (pods & containers) |
+| Manage the control plane, including the scheduler and the ressources| Execute the workload (pods & containers) |
 | Manage the cluster's data | Share the data on their ressource |
 
 This architecture has two big advantages : Easily scalable, since the addition of workload is distinct from the control plane; Resistant : one server can manage several agents, in case of a stopped agent, the serveur can reassign the workload to others.
