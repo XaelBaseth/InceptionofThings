@@ -72,15 +72,7 @@ The installation for this project is done via the provisionning script given to 
 
 This architecture has two big advantages : Easily scalable, since the addition of workload is distinct from the control plane; Resistant : one server can manage several agents, in case of a stopped agent, the serveur can reassign the workload to others.
 
-### K3s commands
-
-To verify K3s is running correctly after its installation, we use the script to check the status of the node, and after accessing the vm via the ssh command, we can run:
-
-    systemctl status k3s
-
-For more details, you can run the following command on the server machine:
-
-    kubectl get nodes
+### Ingress
 
 ## Kubectl
 
@@ -157,3 +149,11 @@ Delete the VM < VM NAME >.
 [Vagrantfile provider](https://portal.cloud.hashicorp.com/vagrant/discover/debian/bullseye64)
 
 [Stephane Robert sur Kubectl](https://blog.stephane-robert.info/docs/conteneurs/orchestrateurs/outils/kubectl/)
+
+[Ingress official documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/)
+
+[P2 Web app image](https://github.com/paulbouwer/hello-kubernetes)
+
+[]()
+
+[]()

@@ -101,6 +101,10 @@ verify_node() {
         "Waiting for Kubernetes node to become Ready"
 }
 
+apply_web_app() {
+	 kubectl replace --force -f /vagrant/confs/
+}
+
 # ===========================
 # Main Script
 # ===========================
@@ -141,3 +145,7 @@ echo -e "${NC}"
 
 log INFO "K3s server setup complete! 🚀"
 kubectl get nodes | tee -a "$LOG_FILE"
+
+log INFO "Applying the web applications"
+apply_web_app
+kubectl get all | tee -a "$LOG_FILE"
