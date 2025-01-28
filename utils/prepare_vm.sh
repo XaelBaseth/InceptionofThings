@@ -59,52 +59,95 @@ install_service() {
     sudo apt update && sudo apt upgrade -y
 
     log INFO "Installing basic dependencies..."
-	sudo apt install -y curl gpg build-essential ca-certificates
+    if ! dpkg -l | grep -qw curl || ! dpkg -l | grep -qw gpg || ! dpkg -l | grep -qw build-essential || ! dpkg -l | grep -qw ca-certificates; then
+        sudo apt install -y curl gpg build-essential ca-certificates
+        log INFO "Basic dependencies installed successfully."
+    else
+        log INFO "Basic dependencies already installed."
+    fi
 }
 
 # Install Vagrant
 install_vagrant() {
-    log INFO "Installing Vagrant..."
-    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-    echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-    sudo apt update && sudo apt install -y vagrant
-	vagrant plugin install vagrant-libvirt
-
-    command -v vagrant >/dev/null 2>&1 || handle_error "Vagrant installation failed."
-    log INFO "Vagrant installed successfully."
+    if ! command -v vagrant &>/dev/null; then
+        log INFO "Installing Vagrant..."
+        curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+        sudo apt update && sudo apt install -y vagrant
+        vagrant plugin install vagrant-libvirt
+        log INFO "Vagrant installed successfully."
+    else
+        log INFO "Vagrant is already installed."
+    fi
 }
 
 # Install Virtualbox Manager and dependencies
 install_vboxManager() {
-	wget -O- -q https://www.virtualbox.org/download/oracle_vbox_2016.asc | sudo gpg --dearmour -o /usr/share/keyrings/oracle_vbox_2016.gpg
-	echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle_vbox_2016.gpg] http://download.virtualbox.org/virtualbox/debian bookworm contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list
-	sudo apt update && sudo apt install virtualbox-7.1 -y
-
-	command -v virtualbox >/dev/null 2>&1 || handle_error "VirtualBox installation failed."
-	log INFO "VirtualBox installed successfully."
+    if ! command -v virtualbox &>/dev/null; then
+        log INFO "Installing VirtualBox..."
+        wget -O- -q https://www.virtualbox.org/download/oracle_vbox_2016.asc | sudo gpg --dearmour -o /usr/share/keyrings/oracle_vbox_2016.gpg
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle_vbox_2016.gpg] http://download.virtualbox.org/virtualbox/debian bookworm contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list
+        sudo apt update && sudo apt install virtualbox-7.1 -y
+        log INFO "VirtualBox installed successfully."
+    else
+        log INFO "VirtualBox is already installed."
+    fi
 }
 
+# Install Docker
 install_docker() {
-	sudo install -m 0755 -d /etc/apt/keyrings
-	sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-	sudo chmod a+r /etc/apt/keyrings/docker.asc
-	echo \
-	"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
-	$(. /etc/os-release && echo "Bookworm") stable" | \
-	sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    if ! command -v docker &>/dev/null; then
+        log INFO "Installing Docker..."
+        sudo install -m 0755 -d /etc/apt/keyrings
+        sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+        sudo chmod a+r /etc/apt/keyrings/docker.asc
+        echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+        $(. /etc/os-release && echo "Bookworm") stable" | \
+        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-	sudo apt update
-	sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-	command -v docker >/dev/null 2>&1 || handle_error "VirtualBox installation failed."
-	log INFO "Docker installed successfully."
+        sudo apt update
+        sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        log INFO "Docker installed successfully."
+    else
+        log INFO "Docker is already installed."
+    fi
 }
 
 set_docker() {
-	sudo groupadd docker
-	sudo usermod -aG docker $USER
+    if ! groups $USER | grep -qw docker; then
+        sudo groupadd docker || true 
+        sudo usermod -aG docker $USER
+        log INFO "User added to Docker group. A reboot might be required."
+    else
+        log INFO "User already in the Docker group."
+    fi
 }
 
+# Install k3d
+install_k3d() {
+    if ! command -v k3d &>/dev/null; then
+        log INFO "Installing k3d..."
+        curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+        command -v k3d &>/dev/null || handle_error "k3d installation failed."
+        log INFO "k3d installed successfully."
+    else
+        log INFO "k3d is already installed."
+    fi
+}
+
+install_kubectl() {
+    if ! command -v kubectl &>/dev/null; then
+        log INFO "Installing kubectl..."
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+        rm -f kubectl
+        command -v kubectl &>/dev/null || handle_error "kubectl installation failed."
+        log INFO "kubectl installed successfully."
+    else
+        log INFO "kubectl is already installed."
+    fi
+}
 
 # ===========================
 # Main Script Execution
@@ -112,11 +155,13 @@ set_docker() {
 
 run_as_sudo
 
-log INFO "Starting setup for Vagrant with Vbox Manager..."
+log INFO "Starting setup for Inception of Things..."
 install_service
 install_vagrant
 install_vboxManager
 install_docker
 set_docker
+install_kubectl
+install_k3d
 
 log INFO "Setup complete! Please reboot your system for group changes to take effect."

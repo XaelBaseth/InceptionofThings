@@ -55,10 +55,23 @@ handle_error() {
 # ===========================
 
 cleanup_vagrant() {
-	vagrant destroy -f
-	vagrant box remove debian/bullseye64 
-	rm -rf .vagrant/
+    log INFO "Cleaning up Vagrant resources..."
+	
+    VAGRANT_DIR=$(find $(pwd) -type f -name "Vagrantfile" -exec dirname {} \; | head -n 1)
+    if [ -z "$VAGRANT_DIR" ]; then
+        handle_error "Vagrantfile not found in the current directory or any parent directory."
+    fi
+
+    log INFO "Found Vagrantfile at: $VAGRANT_DIR"
+    cd "$VAGRANT_DIR"
+
+    sudo -u $SUDO_USER vagrant destroy -f || handle_error "Failed to destroy Vagrant resources"
+    sudo -u $SUDO_USER vagrant box remove debian/bullseye64 || handle_error "Failed to remove Vagrant box"
+    rm -rf .vagrant/ || handle_error "Failed to remove .vagrant directory"
+    
+    log INFO "Vagrant resources cleaned up."
 }
+
 
 cleanup_virtualbox() {
     log INFO "Cleaning up VirtualBox VMs and disk images..."
@@ -85,6 +98,12 @@ cleanup_docker() {
     log INFO "Docker cleanup complete."
 }
 
+cleanup_k3d() {
+    log INFO "Cleaning up k3d clusters..."
+    k3d cluster delete --all || true
+    log INFO "k3d clusters cleaned up."
+}
+
 # ===========================
 # Main Script Execution
 # ===========================
@@ -100,8 +119,11 @@ cleanup_virtualbox
 log INFO "VboxManager cleanup complete. Docker cleanup in process..."
 cleanup_docker
 
+log INFO "Docker cleanup complete. K3d cleanup in process..."
+cleanup_k3d
+
 echo -e "${GREEN}"
 echo "╔═══════════════════════════════════════╗"
-echo "║         	Cleanup Complete	      ║"
+echo "║         🧹 Cleanup Complete 🧹	      ║"
 echo "╚═══════════════════════════════════════╝"
 echo -e "${NC}"

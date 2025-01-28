@@ -20,18 +20,6 @@ Vagrant is an Hashicorp tool that is __"designed for everyone as the simplest an
 
 Use Vagrant for running multiple virtual machines, and Docker for a scalable environments for applications or microservices.
 
-### Install Vagrant on the VM
-
-    wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-    sudo apt update && sudo apt install vagrant
-
-Vagrant needs a provisionner to run. For easier use, we install Oracle VirtualBox Manager with the following commands.
-
-    wget -O- -q https://www.virtualbox.org/download/oracle_vbox_2016.asc | sudo gpg --dearmour -o /usr/share/keyrings/oracle_vbox_2016.gpg
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/oracle_vbox_2016.gpg] http://download.virtualbox.org/virtualbox/debian bookworm contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list
-    sudo apt update && sudo apt install virtualbox-7.1
-
 ### Vagrant commands
 
     vagrant init
@@ -157,6 +145,20 @@ Executes a command inside a running container of a pod.
 Deletes resources by name or from configuration files.
 
     kubectl delete
+
+### K3D
+
+K3d is a lightweight wrapper around K3s, which is a simplified and optimized version of Kubernetes designed for running on resource-constrained environments, such as local development machines or edge devices.
+
+K3d allows you to easily run a multi-node Kubernetes cluster inside Docker containers on your local machine. It's designed to provide the benefits of Kubernetes with a smaller footprint, making it ideal for testing, development, or CI/CD workflows where you need a quick, isolated Kubernetes environment.
+
+- Easy Setup: K3d simplifies the creation of K3s clusters by automating the process of setting up Docker containers as Kubernetes nodes.
+- Multi-Node Clusters: You can spin up a cluster with multiple nodes (both master and worker nodes) in a matter of minutes.
+- Lightweight: Since it uses Docker and K3s, K3d is more resource-efficient than a full Kubernetes cluster, making it ideal for local development.
+- Compatible with kubectl: You can interact with your K3d cluster using the standard kubectl command-line tool, just like you would with a full Kubernetes cluster.
+- Docker Integration: K3d uses Docker to manage the cluster, making it easier to deploy and run Kubernetes in environments that already use Docker.
+
+In summary, K3d is a tool that lets you create a lightweight Kubernetes cluster in Docker for local development, testing, or experimentation, without needing a full Kubernetes setup.
 
 ## The VM
 
