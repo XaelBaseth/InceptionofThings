@@ -68,6 +68,36 @@ Kubernetes is an open-source platform for automating the deployment, scaling, an
 
 By simplifying the management of containerized workloads and offering robust tools for reliability and scalability, Kubernetes has become a cornerstone for modern cloud-native application development.
 
+### Kubernetes vocab
+
+- Cluster: A set of machines (nodes) that work together to run your containerized applications. It includes a control plane and worker nodes.
+
+- Node: A machine (physical or virtual) in the Kubernetes cluster that runs pods. Nodes can be worker nodes or control plane nodes.
+
+- Pod: The smallest deployable unit in Kubernetes. A pod encapsulates one or more containers that share resources like storage, networking, and configuration.
+
+- Deployment: A Kubernetes resource used to manage the lifecycle of pods. It ensures the specified number of replicas are running, supports rolling updates, and handles scaling.
+
+- Service: An abstraction that provides a stable network endpoint for accessing a group of pods. It load-balances traffic to these pods.
+
+- Ingress: A Kubernetes resource that manages external HTTP(S) traffic to services. It can route traffic based on hostnames or paths and often includes SSL termination.
+
+- Replica: A single instance of a pod. Multiple replicas ensure high availability, load balancing, and fault tolerance.
+
+- ConfigMap: A way to store configuration data in key-value pairs that can be used by pods.
+
+- Secret: Similar to a ConfigMap but designed to store sensitive information (e.g., API keys, passwords) in an encrypted format.
+
+- Namespace: A virtual cluster within a Kubernetes cluster, used to organize and isolate resources.
+
+- Kubelet: An agent that runs on each node, ensuring containers are running as expected.
+
+- Kubectl: The command-line tool for interacting with a Kubernetes cluster. You use it to deploy applications, inspect resources, and manage clusters.
+
+- Persistent Volume (PV): A piece of storage in the cluster that can be provisioned and used by pods for storing data.
+
+- Persistent Volume Claim (PVC): A request for storage by a pod. It binds to a Persistent Volume.
+
 ### K3s
 
 K3s is a lightweight version of Kubernetes that has the same role: _a container orchestration engine for automating deployment, scaling, and management of containerized applications_.
@@ -186,6 +216,6 @@ You can finally clean the system
 
 [P2 Web app image](https://github.com/paulbouwer/hello-kubernetes)
 
-[]()
+[Wil42 Docker image](https://hub.docker.com/r/wil42/playground)
 
-[]()
+[K3d official](https://k3d.io/stable/)

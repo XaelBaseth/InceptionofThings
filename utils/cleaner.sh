@@ -54,12 +54,35 @@ handle_error() {
 # Core Functions
 # ===========================
 
+cleanup_vagrant() {
+	vagrant destroy -f
+	vagrant box remove debian/bullseye64 
+	rm -rf .vagrant/
+}
+
 cleanup_virtualbox() {
     log INFO "Cleaning up VirtualBox VMs and disk images..."
     VBoxManage list vms | awk '{print $1}' | tr -d '{}' | while read vm_name; do
         VBoxManage unregistervm "$vm_name" --delete
     done
     log INFO "VirtualBox VMs and disk images cleaned up."
+}
+
+cleanup_docker() {
+    log INFO "Stopping and removing all Docker containers..."
+    docker ps -q | xargs -r docker stop
+    docker ps -aq | xargs -r docker rm
+
+    log INFO "Removing unused Docker networks..."
+    docker network prune -f
+
+    log INFO "Removing unused Docker volumes..."
+    docker volume prune -f
+
+    log INFO "Removing all Docker images..."
+    docker images -q | xargs -r docker rmi -f
+
+    log INFO "Docker cleanup complete."
 }
 
 # ===========================
@@ -69,12 +92,13 @@ cleanup_virtualbox() {
 run_as_sudo
 
 log INFO "Vagrant cleanup in process..."
-vagrant destroy -f
-vagrant box remove debian/bullseye64 
-rm -rf .vagrant/
+cleanup_vagrant
 
 log INFO "Vagrant cleanup complete. VBoxManager cleanup in process..."
 cleanup_virtualbox
+
+log INFO "VboxManager cleanup complete. Docker cleanup in process..."
+cleanup_docker
 
 echo -e "${GREEN}"
 echo "╔═══════════════════════════════════════╗"

@@ -59,7 +59,7 @@ install_service() {
     sudo apt update && sudo apt upgrade -y
 
     log INFO "Installing basic dependencies..."
-	sudo apt install -y curl gpg build-essential
+	sudo apt install -y curl gpg build-essential ca-certificates
 }
 
 # Install Vagrant
@@ -84,6 +84,27 @@ install_vboxManager() {
 	log INFO "VirtualBox installed successfully."
 }
 
+install_docker() {
+	sudo install -m 0755 -d /etc/apt/keyrings
+	sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+	sudo chmod a+r /etc/apt/keyrings/docker.asc
+	echo \
+	"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+	$(. /etc/os-release && echo "Bookworm") stable" | \
+	sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+	sudo apt update
+	sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+	command -v docker >/dev/null 2>&1 || handle_error "VirtualBox installation failed."
+	log INFO "Docker installed successfully."
+}
+
+set_docker() {
+	sudo groupadd docker
+	sudo usermod -aG docker $USER
+}
+
 
 # ===========================
 # Main Script Execution
@@ -95,5 +116,7 @@ log INFO "Starting setup for Vagrant with Vbox Manager..."
 install_service
 install_vagrant
 install_vboxManager
+install_docker
+set_docker
 
 log INFO "Setup complete! Please reboot your system for group changes to take effect."

@@ -33,6 +33,6 @@ spec:
         image: paulbouwer/hello-kubernetes:1.10
         env:
         - name: MESSAGE
-          value: "Hello from app1"
+          value: "Hello from app3"
         ports:
         - containerPort: 8080
