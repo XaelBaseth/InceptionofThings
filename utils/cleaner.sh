@@ -56,18 +56,26 @@ handle_error() {
 
 cleanup_vagrant() {
     log INFO "Cleaning up Vagrant resources..."
-	
-    VAGRANT_DIR=$(find $(pwd) -type f -name "Vagrantfile" -exec dirname {} \; | head -n 1)
+    VAGRANT_DIR=""
+    CURRENT_DIR=$(pwd)
+
+    while [[ "$CURRENT_DIR" != "/" && -z "$VAGRANT_DIR" ]]; do
+        if [ -f "$CURRENT_DIR/Vagrantfile" ]; then
+            VAGRANT_DIR="$CURRENT_DIR"
+        else
+            CURRENT_DIR=$(dirname "$CURRENT_DIR")
+        fi
+    done
+
     if [ -z "$VAGRANT_DIR" ]; then
         handle_error "Vagrantfile not found in the current directory or any parent directory."
     fi
 
     log INFO "Found Vagrantfile at: $VAGRANT_DIR"
     cd "$VAGRANT_DIR"
-
-    sudo -u $SUDO_USER vagrant destroy -f || handle_error "Failed to destroy Vagrant resources"
-    sudo -u $SUDO_USER vagrant box remove debian/bullseye64 || handle_error "Failed to remove Vagrant box"
-    rm -rf .vagrant/ || handle_error "Failed to remove .vagrant directory"
+    sudo -u $SUDO_USER vagrant destroy -f || log WARN "Failed to destroy Vagrant resources"
+    sudo -u $SUDO_USER vagrant box remove debian/bullseye64 || log WARN "Failed to remove Vagrant box"
+    rm -rf .vagrant/ || log WARN "Failed to remove .vagrant directory"
     
     log INFO "Vagrant resources cleaned up."
 }
