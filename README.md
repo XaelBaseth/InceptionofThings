@@ -50,7 +50,25 @@ Connect to the VM with ssh.
 
 Terminate the virtual machine.
 
-## K3s
+## Kubernetes
+
+Kubernetes is an open-source platform for automating the deployment, scaling, and management of containerized applications. It provides a framework to run distributed systems reliably and efficiently. Kubernetes abstracts the underlying infrastructure (whether it's on-premises or cloud-based) and offers key functionalities like:
+
+1. Container Orchestration: It automatically schedules and deploys containers across a cluster of machines, optimizing resource usage.
+
+2. Scaling: Kubernetes can scale applications up or down based on demand, ensuring optimal performance and resource efficiency.
+
+3. Service Discovery and Load Balancing: It provides mechanisms for exposing applications to external traffic, distributing requests across containers, and maintaining high availability.
+
+4. Self-Healing: Kubernetes monitors the health of containers and replaces or restarts failed ones automatically.
+
+5. Configuration Management: You can define the desired state of your application (e.g., the number of replicas, container configurations) declaratively using YAML or JSON files. Kubernetes ensures the system aligns with this state.
+
+6. Rolling Updates and Rollbacks: It allows you to update applications incrementally, reducing downtime. If something goes wrong, Kubernetes can revert to a previous version.
+
+By simplifying the management of containerized workloads and offering robust tools for reliability and scalability, Kubernetes has become a cornerstone for modern cloud-native application development.
+
+### K3s
 
 K3s is a lightweight version of Kubernetes that has the same role: _a container orchestration engine for automating deployment, scaling, and management of containerized applications_.
 
@@ -74,11 +92,13 @@ This architecture has two big advantages : Easily scalable, since the addition o
 
 ### Ingress
 
-## Kubectl
+An ingress is a Kubernetes resource that manages external access to services within a cluster, mostly HTTP or HTTPS traffic. It acts as a reverse proxy, routing requests to the appropriate service based on defined rules like URL paths or hostnames. It allows for __centralized management__ of traffic routing, often including features like load balancing, and access control.
+
+### Kubectl
 
 _kubectl_ is a command-line tool used to interact with Kubernetes cluster. It allows you to manage application running on Kubernetes, inspect cluster ressources, and perfom several administrative tasks.
 
-### Kubectl commands
+#### Kubectl commands
 
 This command allows you to retrieve information about Kubernetes ressources.
 
@@ -118,6 +138,10 @@ Terminate the virtual machine without prompt.
 
     vagrant destroy -f
 
+Destroy the box
+
+    vagrant box remove <box_name>
+
 List the VM managed by Virtualbox.
 
     vboxmanage list vms
@@ -133,6 +157,14 @@ Take the control of the VM < VM NAME > to power it off.
 Delete the VM < VM NAME >.
 
     vboxmanage unregistervm <VM NAME> --delete
+
+Delete the `.vagrant/` folder
+
+    rm -rf .vagrant/
+
+You can finally clean the system
+
+    sudo apt-get autoremove -y && sudo apt-get clean
 
 ## Sources
 

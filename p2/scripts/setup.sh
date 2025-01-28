@@ -15,7 +15,7 @@ NC='\033[0m'
 
 # Logging
 mkdir -p $HOME/vagrant/logs
-LOG_FILE="$HOME/vagrant/logs/server-install.log"
+LOG_FILE="$HOME/vagrant/logs/setup.log"
 
 # Retry configuration
 MAX_ATTEMPTS=12
@@ -148,4 +148,10 @@ kubectl get nodes | tee -a "$LOG_FILE"
 
 log INFO "Applying the web applications"
 apply_web_app
+
+log INFO "Setup the IP adresses in the /etc/hosts"
+echo "192.168.56.110 app1.com" | sudo tee -a /etc/hosts
+echo "192.168.56.110 app2.com" | sudo tee -a /etc/hosts
+echo "192.168.56.110 app3.com" | sudo tee -a /etc/hosts
+
 kubectl get all | tee -a "$LOG_FILE"
