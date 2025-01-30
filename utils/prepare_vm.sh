@@ -74,7 +74,6 @@ install_vagrant() {
         curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
         echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
         sudo apt update && sudo apt install -y vagrant
-        vagrant plugin install vagrant-libvirt
         log INFO "Vagrant installed successfully."
     else
         log INFO "Vagrant is already installed."
@@ -94,61 +93,6 @@ install_vboxManager() {
     fi
 }
 
-# Install Docker
-install_docker() {
-    if ! command -v docker &>/dev/null; then
-        log INFO "Installing Docker..."
-        sudo install -m 0755 -d /etc/apt/keyrings
-        sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-        sudo chmod a+r /etc/apt/keyrings/docker.asc
-        echo \
-        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
-        $(. /etc/os-release && echo "Bookworm") stable" | \
-        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-        sudo apt update
-        sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-        log INFO "Docker installed successfully."
-    else
-        log INFO "Docker is already installed."
-    fi
-}
-
-set_docker() {
-    if ! groups $USER | grep -qw docker; then
-        sudo groupadd docker || true 
-        sudo usermod -aG docker $USER
-        log INFO "User added to Docker group. A reboot might be required."
-    else
-        log INFO "User already in the Docker group."
-    fi
-}
-
-# Install k3d
-install_k3d() {
-    if ! command -v k3d &>/dev/null; then
-        log INFO "Installing k3d..."
-        curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-        command -v k3d &>/dev/null || handle_error "k3d installation failed."
-        log INFO "k3d installed successfully."
-    else
-        log INFO "k3d is already installed."
-    fi
-}
-
-install_kubectl() {
-    if ! command -v kubectl &>/dev/null; then
-        log INFO "Installing kubectl..."
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-        rm -f kubectl
-        command -v kubectl &>/dev/null || handle_error "kubectl installation failed."
-        log INFO "kubectl installed successfully."
-    else
-        log INFO "kubectl is already installed."
-    fi
-}
-
 # ===========================
 # Main Script Execution
 # ===========================
@@ -159,9 +103,16 @@ log INFO "Starting setup for Inception of Things..."
 install_service
 install_vagrant
 install_vboxManager
-install_docker
-set_docker
-install_kubectl
-install_k3d
+
+log INFO "Setup the IP adresses in the /etc/hosts"
+echo "192.168.56.110 app1.com" | sudo tee -a /etc/hosts
+echo "192.168.56.110 app2.com" | sudo tee -a /etc/hosts
+echo "192.168.56.110 app3.com" | sudo tee -a /etc/hosts
+
+echo -e "${GREEN}"
+echo "╔═══════════════════════════════════════╗"
+echo "║         P1 & P2 Setup Complete	      ║"
+echo "╚═══════════════════════════════════════╝"
+echo -e "${NC}"
 
 log INFO "Setup complete! Please reboot your system for group changes to take effect."

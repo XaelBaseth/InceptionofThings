@@ -47,7 +47,7 @@ handle_error() {
 # ===========================
 
 create_cluster() {
-	k3d cluster create argo-cd
+	k3d cluster create argocd
 	k3d cluster create dev
 }
 
@@ -57,10 +57,45 @@ install_argocd() {
 	log INFO "Exposing ArgoCD UI"
 	kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 	log INFO "Waiting for ArgoCD to be ready"
+	sleep 60
 }
 
+get_argocd_credentials() {
+    log INFO "Retrieving ArgoCD credentials..."
 
+    password=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d) 
+    if [[ -z "$password" ]]; then
+        log ERROR "Failed to retrieve ArgoCD password."
+        exit 1
+    fi
+    echo -e "${GREEN}ArgoCD admin username:${NC} admin"
+    echo -e "${GREEN}ArgoCD admin password:${NC} $password"
+
+    log INFO "You can now access ArgoCD at http://localhost:8080"
+}
+
+create_argocd_app() {
+	kubectl apply -n argocd -f ../confs/argocd.yaml
+	log INFO "ArgoCD application created for 42-IoT_acharlot"
+}
 
 # ===========================
 # Main Script Execution
 # ===========================
+
+log INFO "Creating the cluster"
+create_cluster
+
+log INFO "Setting up Argo CD"
+install_argocd
+
+log INFO "Retrieving ArgoCD login credentials"
+get_argocd_credentials
+
+log INFO "Creating ArgoCD application to deploy from GitHub"
+create_argocd_app
+
+log INFO "Making sure that ArgoCD is running..."
+kubectl get pods -n argocd
+
+kubectl port-forward svc/argocd-server -n argocd 8080:443

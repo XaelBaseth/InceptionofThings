@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e  # Exit on any error
-
 # ===========================
 # Constants and Configurations
 # ===========================
@@ -47,7 +45,6 @@ log() {
 
 handle_error() {
     log ERROR "$1"
-    exit 1
 }
 
 # ===========================
@@ -59,13 +56,7 @@ cleanup_vagrant() {
     VAGRANT_DIR=""
     CURRENT_DIR=$(pwd)
 
-    while [[ "$CURRENT_DIR" != "/" && -z "$VAGRANT_DIR" ]]; do
-        if [ -f "$CURRENT_DIR/Vagrantfile" ]; then
-            VAGRANT_DIR="$CURRENT_DIR"
-        else
-            CURRENT_DIR=$(dirname "$CURRENT_DIR")
-        fi
-    done
+    VAGRANT_DIR=$(find "$CURRENT_DIR" -maxdepth 1 -type f -name Vagrantfile 2>/dev/null)
 
     if [ -z "$VAGRANT_DIR" ]; then
         handle_error "Vagrantfile not found in the current directory or any parent directory."
@@ -73,12 +64,14 @@ cleanup_vagrant() {
 
     log INFO "Found Vagrantfile at: $VAGRANT_DIR"
     cd "$VAGRANT_DIR"
+
     sudo -u $SUDO_USER vagrant destroy -f || log WARN "Failed to destroy Vagrant resources"
     sudo -u $SUDO_USER vagrant box remove debian/bullseye64 || log WARN "Failed to remove Vagrant box"
     rm -rf .vagrant/ || log WARN "Failed to remove .vagrant directory"
     
     log INFO "Vagrant resources cleaned up."
 }
+
 
 
 cleanup_virtualbox() {
@@ -132,6 +125,6 @@ cleanup_k3d
 
 echo -e "${GREEN}"
 echo "╔═══════════════════════════════════════╗"
-echo "║         🧹 Cleanup Complete 🧹	      ║"
+echo "║         🧹 Cleanup Complete 🧹        ║"
 echo "╚═══════════════════════════════════════╝"
 echo -e "${NC}"
