@@ -51,29 +51,6 @@ handle_error() {
 # Core Functions
 # ===========================
 
-cleanup_vagrant() {
-    log INFO "Cleaning up Vagrant resources..."
-    VAGRANT_DIR=""
-    CURRENT_DIR=$(pwd)
-
-    VAGRANT_DIR=$(find "$CURRENT_DIR" -maxdepth 1 -type f -name Vagrantfile 2>/dev/null)
-
-    if [ -z "$VAGRANT_DIR" ]; then
-        handle_error "Vagrantfile not found in the current directory or any parent directory."
-    fi
-
-    log INFO "Found Vagrantfile at: $VAGRANT_DIR"
-    cd "$VAGRANT_DIR"
-
-    sudo -u $SUDO_USER vagrant destroy -f || log WARN "Failed to destroy Vagrant resources"
-    sudo -u $SUDO_USER vagrant box remove debian/bullseye64 || log WARN "Failed to remove Vagrant box"
-    rm -rf .vagrant/ || log WARN "Failed to remove .vagrant directory"
-    
-    log INFO "Vagrant resources cleaned up."
-}
-
-
-
 cleanup_virtualbox() {
     log INFO "Cleaning up VirtualBox VMs and disk images..."
     VBoxManage list vms | awk '{print $1}' | tr -d '{}' | while read vm_name; do
@@ -111,8 +88,9 @@ cleanup_k3d() {
 
 run_as_sudo
 
-log INFO "Vagrant cleanup in process..."
-cleanup_vagrant
+echo "To clean up the vagrant run the following commands in the p1 and p2 folders :"
+echo "vagrant destroy -f"
+echo "rm -rf .vagrant/"
 
 log INFO "Vagrant cleanup complete. VBoxManager cleanup in process..."
 cleanup_virtualbox

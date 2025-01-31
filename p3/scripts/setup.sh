@@ -49,15 +49,18 @@ handle_error() {
 create_cluster() {
 	k3d cluster create argocd
 	k3d cluster create dev
+
+	kubectl create namespace dev
+	kubectl create namespace argocd
 }
 
 install_argocd() {
-	kubectl create namespace argocd
 	kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 	log INFO "Exposing ArgoCD UI"
-	kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+	
 	log INFO "Waiting for ArgoCD to be ready"
 	sleep 60
+	kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 }
 
 get_argocd_credentials() {
@@ -98,4 +101,5 @@ create_argocd_app
 log INFO "Making sure that ArgoCD is running..."
 kubectl get pods -n argocd
 
-kubectl port-forward svc/argocd-server -n argocd 8080:443
+log INFO "Forwarding the dev-app to http://localhost:8888/ \
+by using the command `kubectl port-forward svc/dev-app -n dev 8888:80`"
