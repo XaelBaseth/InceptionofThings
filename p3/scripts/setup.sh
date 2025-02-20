@@ -101,5 +101,7 @@ create_argocd_app
 log INFO "Making sure that ArgoCD is running..."
 kubectl get pods -n argocd
 
-log INFO "Forwarding the dev-app to http://localhost:8888/ \
-by using the command `kubectl port-forward svc/dev-app -n dev 8888:80`"
+log INFO "Forward the dev-app to http://localhost:8888/ \
+by using the command kubectl port-forward svc/dev-app -n dev 8888:80 in superuser"
+kubectl get ns
+kubectl get pods -n dev

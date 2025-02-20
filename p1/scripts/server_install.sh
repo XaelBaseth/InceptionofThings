@@ -140,4 +140,4 @@ echo "╚═══════════════════════�
 echo -e "${NC}"
 
 log INFO "K3s server setup complete! 🚀"
-kubectl get nodes | tee -a "$LOG_FILE"
+kubectl get nodes -o wide | tee -a "$LOG_FILE"

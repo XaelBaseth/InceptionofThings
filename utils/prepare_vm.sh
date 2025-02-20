@@ -59,7 +59,7 @@ install_service() {
     sudo apt update && sudo apt upgrade -y
 
     log INFO "Installing basic dependencies..."
-    if ! dpkg -l | grep -qw curl || ! dpkg -l | grep -qw gpg || ! dpkg -l | grep -qw build-essential || ! dpkg -l | grep -qw ca-certificates; then
+    if ! dpkg -l | grep -qw curl || ! dpkg -l | grep -qw gpg || ! dpkg -l | grep -qw build-essential || ! dpkg -l | grep -qw ca-certificates || ! dpkg -l | grep -qw git; then
         sudo apt install -y curl gpg build-essential ca-certificates
         log INFO "Basic dependencies installed successfully."
     else
@@ -104,10 +104,11 @@ install_service
 install_vagrant
 install_vboxManager
 
-log INFO "Setup the IP adresses in the /etc/hosts"
+log INFO "Setup the IP addresses in the /etc/hosts"
 echo "192.168.56.110 app1.com" | sudo tee -a /etc/hosts
 echo "192.168.56.110 app2.com" | sudo tee -a /etc/hosts
 echo "192.168.56.110 app3.com" | sudo tee -a /etc/hosts
+echo "127.0.0.1 " | sudo tee -a /etc/hosts
 
 echo -e "${GREEN}"
 echo "╔═══════════════════════════════════════╗"

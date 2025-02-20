@@ -3,14 +3,14 @@ kind: Service # Expose the pods to the outside of the cluster
 metadata:
   name: app1
 spec:
-  selector: # Links the service to a kubernetes ressources
+  selector: # Links the service to a kubernetes resources
     app: app1
   ports:
   - protocol: TCP
     port: 80  # Expose ports
     targetPort: 8080 # Router ports
   
---- # separate ressources
+--- # separate resources
 
 apiVersion: apps/v1
 kind: Deployment # Manages the lifecycle of the application's pods, ensuring one replica runs at all times.

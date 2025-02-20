@@ -144,3 +144,4 @@ echo "╚═══════════════════════�
 echo -e "${NC}"
 
 log INFO "K3s agent setup complete! 🚀"
+wait_for_service k3s-agent
